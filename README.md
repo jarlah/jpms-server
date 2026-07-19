@@ -21,7 +21,7 @@ Runtime third-party jars: `HikariCP` 7.x, `postgresql`, Jackson 3 `jackson-{core
 
 ## Build & test
 
-With direnv (`.envrc` → `use nix`, cached by nix-direnv), `cd` into the repo and JDK 21 + Maven are on PATH — run `direnv allow` once. Without direnv, `nix-shell` gives the same environment (shell.nix).
+With direnv (`.envrc` → `use nix`, cached by nix-direnv), `cd` into the repo and JDK 25 + Maven are on PATH — run `direnv allow` once. Without direnv, `nix-shell` gives the same environment (shell.nix).
 
 ```sh
 mvn spotless:apply   # format Java sources across the reactor
