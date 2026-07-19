@@ -7,6 +7,7 @@ case "${1:-run}" in
   run)
     ;;
   ddl)
+    rm -rf app/target/modules
     mvn -q -DskipTests package
     exec java --module-path postgres-schema/target/classes:app/target/modules \
          -m jpms.server.postgres.schema/jpms.server.postgres.schema.SchemaCli
@@ -23,7 +24,7 @@ case "${1:-run}" in
     ;;
 esac
 
-rm -rf app/target/modules   # copy-dependencies does not purge jars from earlier builds
+rm -rf app/target/modules
 mvn -q -DskipTests package
 exec java --module-path app/target/classes:app/target/modules \
      -m jpms.server.app/jpms.server.Main
