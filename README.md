@@ -70,6 +70,23 @@ java --module-path app/target/classes:app/target/modules \
   -m jpms.server.app/jpms.server.Main
 ```
 
+### Linked runtime image
+
+Build a platform-specific, self-contained runtime image with `jlink`:
+
+```sh
+./build-image.sh
+app/target/jpms-server/bin/jpms-server
+```
+
+The resulting launcher uses the same environment variables as `run.sh` and does not require a
+separately installed JDK. PostgreSQL JDBC currently exposes an automatic module rather than an
+explicit descriptor, which `jlink` cannot consume. The build therefore compiles
+`app/src/jlink/postgresql/module-info.java` and injects it into a staged copy of the driver; the
+Maven dependency remains unchanged. `--bind-services` includes the PostgreSQL, Elasticsearch, and
+logging providers selected through `ServiceLoader`. The schema CLIs remain separate deployment
+commands and are not included in the application image.
+
 ### Poking the API — `api`
 
 Wraps every endpoint so you never hand-write curl; `BASE_URL` overrides the target (default `http://localhost:8080`).
