@@ -22,7 +22,7 @@ class ElasticsearchSchemaIntegrationTest {
     @Container
     @SuppressWarnings("resource") // Closed by the Testcontainers JUnit extension.
     private static final ElasticsearchContainer ELASTICSEARCH =
-            new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.18.2")
+            new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:9.4.2")
                     .withEnv("xpack.security.enabled", "false")
                     .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m");
 
