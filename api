@@ -1,0 +1,178 @@
+#!/usr/bin/env bash
+# CLI wrapper around the jpms-server HTTP API, for manual poking and smoke verification.
+set -euo pipefail
+
+BASE="${BASE_URL:-http://localhost:8080}"
+STATUS=""
+BODY=""
+
+usage() {
+  cat <<EOF
+usage: $(basename "$0") <command> [args]
+
+  health                   GET /healthz
+  create <title> <body>    POST /notes
+  list                     GET /notes
+  get <id>                 GET /notes/{id}
+  delete <id>              DELETE /notes/{id}
+  search <query> [size]    GET /notes/_search
+  reindex                  POST /notes/_reindex
+  smoke                    end-to-end check: create -> get -> search -> reindex -> delete -> gone
+
+Target server: \$BASE_URL (default http://localhost:8080)
+EOF
+  exit 1
+}
+
+pretty() {
+  if command -v jq >/dev/null 2>&1; then jq .; else cat; echo; fi
+}
+
+json_escape() {
+  local s=$1
+  s=${s//\\/\\\\}
+  s=${s//\"/\\\"}
+  printf '%s' "$s"
+}
+
+# request METHOD PATH [JSON_BODY] -- fills $STATUS and $BODY
+request() {
+  local method=$1 path=$2 data=${3:-}
+  local args=(-sS -X "$method" -w $'\n%{http_code}')
+  if [[ -n $data ]]; then
+    args+=(-H 'Content-Type: application/json' -d "$data")
+  fi
+  local response
+  response=$(curl "${args[@]}" "$BASE$path")
+  STATUS=${response##*$'\n'}
+  BODY=${response%$'\n'*}
+}
+
+show() {
+  request "$@"
+  echo "$1 $2 -> $STATUS" >&2
+  if [[ -n $BODY ]]; then
+    printf '%s\n' "$BODY" | pretty
+  fi
+}
+
+search_cmd() {
+  local q=$1 size=${2:-10}
+  local response
+  response=$(curl -sS -G -w $'\n%{http_code}' \
+      --data-urlencode "q=$q" --data-urlencode "size=$size" "$BASE/notes/_search")
+  STATUS=${response##*$'\n'}
+  BODY=${response%$'\n'*}
+  echo "GET /notes/_search q=$q size=$size -> $STATUS" >&2
+  printf '%s\n' "$BODY" | pretty
+}
+
+# ---- smoke test -------------------------------------------------------------
+
+FAILURES=0
+
+check() { # description expected_status
+  if [[ $STATUS == "$2" ]]; then
+    echo "ok   $1 ($STATUS)"
+  else
+    echo "FAIL $1 -- expected $2, got $STATUS: $BODY"
+    FAILURES=$((FAILURES + 1))
+  fi
+}
+
+extract_num() { # key -> first numeric value of "key":N in $BODY
+  printf '%s' "$BODY" | grep -o "\"$1\":[0-9]*" | head -1 | cut -d: -f2 || true
+}
+
+# Real ES is near-real-time: docs become searchable on refresh (~1s), so poll.
+wait_for_total() { # query want_total
+  local total="" tries=0
+  while (( tries < 20 )); do
+    request GET "/notes/_search?q=$1"
+    total=$(extract_num total)
+    if [[ ${total:-x} == "$2" ]]; then
+      return 0
+    fi
+    tries=$((tries + 1))
+    sleep 0.5
+  done
+  return 1
+}
+
+smoke() {
+  echo "smoke test against $BASE"
+  local marker="smoke$(date +%s)" # single unique token, safe in a URL
+
+  request GET /healthz
+  check "healthz" 200
+
+  request POST /notes "{\"title\":\"Smoke test\",\"body\":\"the $marker token melts snow\"}"
+  check "create note" 201
+  local id
+  id=$(extract_num id)
+  if [[ -z $id ]]; then
+    echo "FAIL could not extract note id from: $BODY"
+    exit 1
+  fi
+
+  request GET "/notes/$id"
+  check "get note $id" 200
+
+  if wait_for_total "$marker" 1; then
+    echo "ok   search finds the note"
+  else
+    echo "FAIL search never found the note"
+    FAILURES=$((FAILURES + 1))
+  fi
+
+  request POST /notes/_reindex
+  check "reindex" 200
+  if [[ $BODY == *'"errors":false'* ]]; then
+    echo "ok   reindex reports no per-item failures"
+  else
+    echo "FAIL reindex reported failures: $BODY"
+    FAILURES=$((FAILURES + 1))
+  fi
+
+  request DELETE "/notes/$id"
+  check "delete note" 204
+
+  request GET "/notes/$id"
+  check "deleted note is gone" 404
+
+  if wait_for_total "$marker" 0; then
+    echo "ok   search no longer finds it"
+  else
+    echo "FAIL deleted note is still searchable"
+    FAILURES=$((FAILURES + 1))
+  fi
+
+  echo
+  if (( FAILURES == 0 )); then
+    echo "SMOKE PASS"
+  else
+    echo "SMOKE FAIL ($FAILURES)"
+    exit 1
+  fi
+}
+
+# ---- dispatch ---------------------------------------------------------------
+
+cmd=${1:-}
+if [[ -n $cmd ]]; then shift; fi
+
+case $cmd in
+  health)  show GET /healthz ;;
+  create)  if [[ $# -lt 2 ]]; then usage; fi
+           show POST /notes "{\"title\":\"$(json_escape "$1")\",\"body\":\"$(json_escape "$2")\"}" ;;
+  list)    show GET /notes ;;
+  get)     if [[ $# -lt 1 ]]; then usage; fi
+           show GET "/notes/$1" ;;
+  delete)  if [[ $# -lt 1 ]]; then usage; fi
+           show DELETE "/notes/$1" ;;
+  search)  if [[ $# -lt 1 ]]; then usage; fi
+           search_cmd "$@" ;;
+  reindex) show POST /notes/_reindex ;;
+  smoke)   smoke ;;
+  *)       usage ;;
+esac
