@@ -39,7 +39,6 @@ class ProductionAppIT {
     private static final Pattern LISTENING = Pattern.compile("jpms-server listening on :(\\d+)");
 
     @Container
-    @SuppressWarnings("resource") // Closed by the Testcontainers JUnit extension.
     private static final PostgreSQLContainer POSTGRES =
             new PostgreSQLContainer("postgres:17-alpine")
                     .withDatabaseName("app")
@@ -47,7 +46,6 @@ class ProductionAppIT {
                     .withPassword("app");
 
     @Container
-    @SuppressWarnings("resource") // Closed by the Testcontainers JUnit extension.
     private static final ElasticsearchContainer ELASTICSEARCH =
             new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:9.4.2")
                     .withEnv("xpack.security.enabled", "false")
