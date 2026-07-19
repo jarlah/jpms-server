@@ -32,7 +32,9 @@ mvn verify           # compiles on the module path (JPMS enforced), checks forma
 The schema integration tests require a working Docker daemon. Testcontainers starts the
 same PostgreSQL and Elasticsearch image versions used by `compose.yaml`; the first run may
 download them. Fast core tests still use in-memory implementations, and `EsRestClientTest`
-keeps its scripted local HTTP server for transport and failure-path coverage.
+keeps its scripted local HTTP server for transport and failure-path coverage. During
+`verify`, the app integration test also launches the packaged production module command
+and exercises the complete HTTP lifecycle against both real backends.
 
 ## Run
 
