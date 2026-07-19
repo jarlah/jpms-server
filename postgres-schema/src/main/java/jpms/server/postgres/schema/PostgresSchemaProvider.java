@@ -11,7 +11,7 @@ import jpms.server.postgres.DbSchema;
 public final class PostgresSchemaProvider {
 
     public List<DbSchema> schemas() {
-        return List.of(new DbSchema("app", statements(readResource("/schema.sql"))));
+        return List.of(new DbSchema("app", statements(readSchema())));
     }
 
     private static List<String> statements(String ddl) {
@@ -21,10 +21,10 @@ public final class PostgresSchemaProvider {
                 .toList();
     }
 
-    private static String readResource(String path) {
-        try (InputStream in = PostgresSchemaProvider.class.getResourceAsStream(path)) {
+    private static String readSchema() {
+        try (InputStream in = PostgresSchemaProvider.class.getResourceAsStream("/schema.sql")) {
             if (in == null) {
-                throw new IllegalStateException("missing resource " + path);
+                throw new IllegalStateException("missing resource " + "/schema.sql");
             }
             return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {

@@ -6,7 +6,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 public final class SchemaCli {
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         Map<String, String> env = System.getenv();
         ObjectMapper json = new JsonMapper();
 

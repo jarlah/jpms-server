@@ -10,7 +10,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 public final class Main {
 
-    public static void main(String[] args) throws Exception {
+    static void main(String[] args) throws Exception {
         var env = System.getenv();
         Config config = Config.fromEnv(env);
         ObjectMapper json = new JsonMapper();
