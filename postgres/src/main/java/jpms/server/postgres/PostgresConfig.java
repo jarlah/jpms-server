@@ -1,21 +1,21 @@
 package jpms.server.postgres;
 
-import java.util.Map;
+import jpms.server.core.config.Config;
 
 record PostgresConfig(String jdbcUrl, String user, String password, int poolSize) {
 
-    private static final String ENV_PREFIX = "JPMS_SERVER_POSTGRES_";
+    private static final String PREFIX = "jpms.server.postgres.";
 
-    static PostgresConfig from(Map<String, String> values) {
+    static PostgresConfig from(Config config) {
         return new PostgresConfig(
-                jdbcUrl(values.getOrDefault(env("TARGET"), "localhost:5432/app")),
-                values.getOrDefault(env("USER"), "app"),
-                values.getOrDefault(env("PASS"), "app"),
-                Integer.parseInt(values.getOrDefault(env("POOL_SIZE"), "10")));
+                jdbcUrl(config.getString(path("target"), "localhost:5432/app")),
+                config.getString(path("user"), "app"),
+                config.getString(path("pass"), "app"),
+                config.getInt(path("pool.size"), 10));
     }
 
-    static String env(String name) {
-        return ENV_PREFIX + name;
+    static String path(String name) {
+        return PREFIX + name;
     }
 
     private static String jdbcUrl(String target) {

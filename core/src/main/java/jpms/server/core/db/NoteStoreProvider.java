@@ -1,8 +1,8 @@
 package jpms.server.core.db;
 
-import java.util.Map;
+import jpms.server.core.config.Config;
 
 public interface NoteStoreProvider {
 
-    NoteStore open(Map<String, String> config);
+    NoteStore open(Config config);
 }

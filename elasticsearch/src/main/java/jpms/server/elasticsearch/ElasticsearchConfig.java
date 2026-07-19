@@ -3,30 +3,30 @@ package jpms.server.elasticsearch;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Map;
+import jpms.server.core.config.Config;
 
 record ElasticsearchConfig(URI base, String authHeader) {
 
-    private static final String ENV_PREFIX = "JPMS_SERVER_ELASTICSEARCH_";
+    private static final String PREFIX = "jpms.server.elasticsearch.";
 
-    static ElasticsearchConfig from(Map<String, String> values) {
+    static ElasticsearchConfig from(Config config) {
         return new ElasticsearchConfig(
-                URI.create(values.getOrDefault(env("TARGET"), "http://localhost:9200")),
-                authHeader(values));
+                URI.create(config.getString(path("target"), "http://localhost:9200")),
+                authHeader(config));
     }
 
-    static String env(String name) {
-        return ENV_PREFIX + name;
+    static String path(String name) {
+        return PREFIX + name;
     }
 
-    private static String authHeader(Map<String, String> values) {
-        String apiKey = values.get(env("API_KEY"));
+    private static String authHeader(Config config) {
+        String apiKey = config.getString(path("api.key"), null);
         if (apiKey != null) {
             return "ApiKey " + apiKey;
         }
-        String user = values.get(env("USER"));
+        String user = config.getString(path("user"), null);
         if (user != null) {
-            String credentials = user + ":" + values.getOrDefault(env("PASS"), "");
+            String credentials = user + ":" + config.getString(path("pass"), "");
             return "Basic "
                     + Base64.getEncoder()
                             .encodeToString(credentials.getBytes(StandardCharsets.UTF_8));

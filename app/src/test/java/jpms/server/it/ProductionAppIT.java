@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import jpms.server.core.config.Config;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -53,8 +54,9 @@ class ProductionAppIT {
 
     @BeforeAll
     static void applyProductionSchemas() {
-        jpms.server.postgres.schema.Schema.apply(config());
-        jpms.server.elasticsearch.schema.Schema.apply(config(), JSON);
+        Config config = Config.of(Map.of()).withEnvOverrides(config());
+        jpms.server.postgres.schema.Schema.apply(config);
+        jpms.server.elasticsearch.schema.Schema.apply(config, JSON);
     }
 
     @Test

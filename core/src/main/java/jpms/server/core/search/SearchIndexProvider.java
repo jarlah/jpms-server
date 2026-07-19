@@ -1,9 +1,9 @@
 package jpms.server.core.search;
 
-import java.util.Map;
+import jpms.server.core.config.Config;
 import tools.jackson.databind.ObjectMapper;
 
 public interface SearchIndexProvider {
 
-    SearchIndex create(Map<String, String> config, ObjectMapper json);
+    SearchIndex create(Config config, ObjectMapper json);
 }

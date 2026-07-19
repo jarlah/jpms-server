@@ -1,6 +1,10 @@
 package jpms.server;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.ServiceLoader;
+import jpms.server.core.config.Config;
 import jpms.server.core.db.NoteStoreProvider;
 import jpms.server.core.http.HttpApi;
 import jpms.server.core.notes.NoteService;
@@ -11,17 +15,17 @@ import tools.jackson.databind.json.JsonMapper;
 public final class Main {
 
     static void main(String[] args) throws Exception {
-        var env = System.getenv();
-        Config config = Config.fromEnv(env);
+        Config config = loadConfig();
+        AppConfig appConfig = AppConfig.from(config);
         ObjectMapper json = new JsonMapper();
 
-        var store = provider(NoteStoreProvider.class).open(env);
+        var store = provider(NoteStoreProvider.class).open(config);
         try {
-            var searchIndex = provider(SearchIndexProvider.class).create(env, json);
+            var searchIndex = provider(SearchIndexProvider.class).create(config, json);
             var notes = new NoteService(store.repository(), searchIndex, json);
             notes.ensureSearchIndex();
 
-            var server = HttpApi.start(config.port(), notes, json);
+            var server = HttpApi.start(appConfig.port(), notes, json);
             Runtime.getRuntime()
                     .addShutdownHook(
                             new Thread(
@@ -33,6 +37,17 @@ public final class Main {
         } catch (Exception e) {
             store.close();
             throw e;
+        }
+    }
+
+    private static Config loadConfig() {
+        try (InputStream in = Main.class.getResourceAsStream("/application.properties")) {
+            if (in == null) {
+                throw new IllegalStateException("application.properties not found on classpath");
+            }
+            return Config.load(in).withEnvOverrides(System.getenv());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 

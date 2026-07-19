@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
+import jpms.server.core.config.Config;
 import jpms.server.core.notes.Note;
 import jpms.server.postgres.PostgresNoteStoreProvider;
 import org.junit.jupiter.api.BeforeAll;
@@ -49,11 +50,12 @@ class PostgresSchemaIntegrationTest {
         }
     }
 
-    private static Map<String, String> config() {
-        return Map.of(
-                "JPMS_SERVER_POSTGRES_TARGET", POSTGRES.getJdbcUrl(),
-                "JPMS_SERVER_POSTGRES_USER", POSTGRES.getUsername(),
-                "JPMS_SERVER_POSTGRES_PASS", POSTGRES.getPassword(),
-                "JPMS_SERVER_POSTGRES_POOL_SIZE", "2");
+    private static Config config() {
+        return Config.of(
+                Map.of(
+                        "jpms.server.postgres.target", POSTGRES.getJdbcUrl(),
+                        "jpms.server.postgres.user", POSTGRES.getUsername(),
+                        "jpms.server.postgres.pass", POSTGRES.getPassword(),
+                        "jpms.server.postgres.pool.size", "2"));
     }
 }

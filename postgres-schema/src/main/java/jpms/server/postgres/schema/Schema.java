@@ -1,11 +1,11 @@
 package jpms.server.postgres.schema;
 
-import java.util.Map;
+import jpms.server.core.config.Config;
 import jpms.server.postgres.PostgresSchemaApplier;
 
 public final class Schema {
 
-    public static int apply(Map<String, String> config) {
+    public static int apply(Config config) {
         var schemas = new PostgresSchemaProvider().schemas();
         try (var applier = PostgresSchemaApplier.open(config)) {
             applier.apply(schemas);

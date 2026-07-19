@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
+import jpms.server.core.config.Config;
 import jpms.server.core.notes.NoteService;
 import jpms.server.elasticsearch.EsRestClientProvider;
 import org.junit.jupiter.api.BeforeAll;
@@ -63,8 +64,10 @@ class ElasticsearchSchemaIntegrationTest {
         assertEquals(1, search.count(ElasticsearchSchemaProvider.NOTE_SUGGESTIONS_INDEX, null));
     }
 
-    private static Map<String, String> config() {
-        return Map.of(
-                "JPMS_SERVER_ELASTICSEARCH_TARGET", "http://" + ELASTICSEARCH.getHttpHostAddress());
+    private static Config config() {
+        return Config.of(
+                Map.of(
+                        "jpms.server.elasticsearch.target",
+                        "http://" + ELASTICSEARCH.getHttpHostAddress()));
     }
 }

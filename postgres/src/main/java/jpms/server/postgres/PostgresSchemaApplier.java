@@ -4,15 +4,15 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-import java.util.Map;
 import javax.sql.DataSource;
+import jpms.server.core.config.Config;
 
 public final class PostgresSchemaApplier implements AutoCloseable {
 
     private final DataSource dataSource;
     private final AutoCloseable closeable;
 
-    public static PostgresSchemaApplier open(Map<String, String> config) {
+    public static PostgresSchemaApplier open(Config config) {
         var dataSource = PostgresDataSources.pooled(PostgresConfig.from(config));
         return new PostgresSchemaApplier(dataSource, dataSource);
     }
