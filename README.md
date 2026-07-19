@@ -17,6 +17,7 @@ Runtime third-party jars: `HikariCP` 7.x, `postgresql`, Jackson 3 `jackson-{core
 | `jpms-server-postgres-schema` | `dev.jarl.jpmsserver.postgres.schema` | Optional PostgreSQL schema SQL/bootstrap utility |
 | `jpms-server-postgres` | `dev.jarl.jpmsserver.postgres` | Hikari/JDBC repository and pgjdbc dependency |
 | `jpms-server-elasticsearch` | `dev.jarl.jpmsserver.elasticsearch` | Elasticsearch REST implementation for `SearchIndex` |
+| `jpms-server-elasticsearch-schema` | `dev.jarl.jpmsserver.elasticsearch.schema` | Optional Elasticsearch index bootstrap utility |
 | `jpms-server-app` | `dev.jarl.jpmsserver.app` | `Main`, config, and `ServiceLoader` lookup |
 
 ## Build & test
@@ -35,18 +36,27 @@ Tests need no Docker and no network: H2 replaces Postgres, `InMemorySearchIndex`
 ```sh
 docker compose up -d   # local Postgres + Elasticsearch (optional if you point env vars elsewhere)
 ./run.sh ddl           # optional: apply local test DDL from jpms-server-postgres-schema
+./run.sh es-schema     # optional: upsert Elasticsearch indexes from app-provided schema
 ./run.sh
 curl -s localhost:8080/healthz
 ```
 
-The application assumes its SQL schema already exists. The optional `jpms-server-postgres-schema`
-module contains the current PostgreSQL DDL used by tests and local setup, but
-`jpms-server-app` does not run it automatically. That keeps production deployment policy
-outside the database access module: a future `postgres-flyway` module, DBA-managed DDL,
-or another migration runner can own schema changes without touching `postgres`.
+The application assumes its SQL schema and search indexes already exist. The optional
+`jpms-server-postgres-schema` module contains the current PostgreSQL DDL used by tests
+and local setup. The optional `jpms-server-elasticsearch-schema` module owns the bundled
+Elasticsearch index definitions and asks the Elasticsearch module to upsert every
+declared index. Missing indexes are created with their full definition; existing indexes
+receive mapping updates only, because most meaningful Elasticsearch settings are
+create-time or migration concerns. `jpms-server-app` does not run either automatically.
+That keeps production deployment policy outside app startup.
 
 For local testing, `./run.sh ddl` applies the bundled PostgreSQL `schema.sql` against
 `JPMS_SERVER_POSTGRES_TARGET`, `JPMS_SERVER_POSTGRES_USER`, and `JPMS_SERVER_POSTGRES_PASS`. It is an explicit command, not part of app startup.
+
+For local testing, `./run.sh es-schema` upserts the app's Elasticsearch index definitions
+against `JPMS_SERVER_ELASTICSEARCH_TARGET` using the same Elasticsearch auth environment
+as the runtime provider. The sample app currently declares two indexes: `notes` for
+full note search and `note_suggestions` for a separate suggestion-oriented use case.
 
 `run.sh` launches fully modular — everything on the module path:
 
@@ -131,6 +141,8 @@ Both infrastructure edges are swapped through JPMS services — by construction,
 |---|---|---|
 | SQL | `NoteStoreProvider` | `dev.jarl.jpmsserver.postgres provides ... with PostgresNoteStoreProvider` | Postgres module tests use `jpms-server-postgres-schema` + H2 in PostgreSQL mode; core tests use `InMemoryNoteRepository` |
 | Search | `SearchIndexProvider` | `dev.jarl.jpmsserver.elasticsearch provides ... with EsRestClientProvider` | `new InMemorySearchIndex()` |
+| DB schema | `DbSchemaProvider` + `DbSchemaApplierProvider` | `dev.jarl.jpmsserver.postgres.schema provides ... with PostgresSchemaProvider`; `dev.jarl.jpmsserver.postgres provides ... with PostgresSchemaApplierProvider` | CLI/bootstrap concern |
+| Search schema | `SearchSchemaProvider` + `SearchSchemaApplierProvider` | `dev.jarl.jpmsserver.elasticsearch.schema provides ... with ElasticsearchSchemaProvider`; `dev.jarl.jpmsserver.elasticsearch provides ... with EsSchemaApplierProvider` | CLI/bootstrap concern |
 
 `Main` declares `uses` for those provider interfaces and loads exactly one provider of each type via `ServiceLoader`. The concrete implementation is chosen by which provider module is present on the runtime module path, not by importing `EsRestClient` or `PostgresNoteRepository` in the app.
 

@@ -1,55 +1,52 @@
 package dev.jarl.jpmsserver.postgres.schema;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import javax.sql.DataSource;
+import dev.jarl.jpmsserver.core.db.schema.DbSchema;
+import dev.jarl.jpmsserver.core.db.schema.DbSchemaApplierProvider;
+import dev.jarl.jpmsserver.core.db.schema.DbSchemaProvider;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
 
 public final class Schema {
 
-    public static void apply(DataSource dataSource) {
-        try (Connection connection = dataSource.getConnection();
-                Statement statement = connection.createStatement()) {
-            apply(connection);
-        } catch (SQLException e) {
-            throw new UncheckedSqlException(e);
+    public static int apply(Map<String, String> config) {
+        List<DbSchema> schemas = schemas();
+        try (var applier = provider(DbSchemaApplierProvider.class).create(config)) {
+            applier.apply(schemas);
         }
+        return schemas.stream().mapToInt(schema -> schema.statements().size()).sum();
     }
 
-    public static void apply(Connection connection) {
-        String ddl = readResource("/schema.sql");
-        try (Statement statement = connection.createStatement()) {
-            for (String sql : ddl.split(";")) {
-                if (!sql.isBlank()) {
-                    statement.execute(sql);
+    private static List<DbSchema> schemas() {
+        Map<String, DbSchema> schemas = new LinkedHashMap<>();
+        for (DbSchemaProvider provider : ServiceLoader.load(DbSchemaProvider.class)) {
+            for (DbSchema schema : provider.schemas()) {
+                DbSchema previous = schemas.putIfAbsent(schema.name(), schema);
+                if (previous != null) {
+                    throw new IllegalStateException(
+                            "duplicate db schema definition: " + schema.name());
                 }
             }
-        } catch (SQLException e) {
-            throw new UncheckedSqlException(e);
         }
+        if (schemas.isEmpty()) {
+            throw new IllegalStateException(
+                    "no provider found for " + DbSchemaProvider.class.getName());
+        }
+        return List.copyOf(schemas.values());
     }
 
-    private static String readResource(String path) {
-        try (InputStream in = Schema.class.getResourceAsStream(path)) {
-            if (in == null) {
-                throw new IllegalStateException("missing resource " + path);
-            }
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+    private static <T> T provider(Class<T> type) {
+        var providers = ServiceLoader.load(type).stream().map(ServiceLoader.Provider::get).toList();
+        if (providers.isEmpty()) {
+            throw new IllegalStateException("no provider found for " + type.getName());
         }
+        if (providers.size() > 1) {
+            throw new IllegalStateException(
+                    "multiple providers found for " + type.getName() + ": " + providers);
+        }
+        return providers.getFirst();
     }
 
     private Schema() {}
-
-    public static final class UncheckedSqlException extends RuntimeException {
-
-        private UncheckedSqlException(SQLException cause) {
-            super(cause);
-        }
-    }
 }

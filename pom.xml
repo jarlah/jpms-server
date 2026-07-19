@@ -14,6 +14,7 @@
     <module>postgres-schema</module>
     <module>postgres</module>
     <module>elasticsearch</module>
+    <module>elasticsearch-schema</module>
     <module>app</module>
   </modules>
 

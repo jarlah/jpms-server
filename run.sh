@@ -9,11 +9,18 @@ case "${1:-run}" in
   ddl)
     mvn -q -DskipTests package
     exec java --module-path postgres-schema/target/classes:app/target/modules \
-         --add-modules org.postgresql.jdbc \
+         --add-modules dev.jarl.jpmsserver.postgres,org.postgresql.jdbc \
          -m dev.jarl.jpmsserver.postgres.schema/dev.jarl.jpmsserver.postgres.schema.SchemaCli
     ;;
+  es-schema)
+    rm -rf app/target/modules
+    mvn -q -DskipTests package
+    exec java --module-path elasticsearch-schema/target/classes:app/target/modules \
+         --add-modules dev.jarl.jpmsserver.elasticsearch \
+         -m dev.jarl.jpmsserver.elasticsearch.schema/dev.jarl.jpmsserver.elasticsearch.schema.SchemaCli
+    ;;
   *)
-    echo "usage: $(basename "$0") [run|ddl]" >&2
+    echo "usage: $(basename "$0") [run|ddl|es-schema]" >&2
     exit 1
     ;;
 esac

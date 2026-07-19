@@ -170,6 +170,20 @@ public final class EsRestClient implements SearchIndex {
                 200);
     }
 
+    public void upsertIndex(String index, ObjectNode definition) {
+        if (!indexExists(index)) {
+            createIndex(index, definition);
+            return;
+        }
+        if (definition == null) {
+            return;
+        }
+        JsonNode mappings = definition.get("mappings");
+        if (mappings instanceof ObjectNode mappingsNode && !mappingsNode.isEmpty()) {
+            expect(exchange("PUT", enc(index) + "/_mapping", JSON, bytes(mappingsNode)), 200);
+        }
+    }
+
     @Override
     public void deleteIndex(String index) {
         expect(exchange("DELETE", enc(index), null, null), 200);

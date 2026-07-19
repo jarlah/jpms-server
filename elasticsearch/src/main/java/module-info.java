@@ -8,4 +8,6 @@ module dev.jarl.jpmsserver.elasticsearch {
 
     provides dev.jarl.jpmsserver.core.search.SearchIndexProvider with
             dev.jarl.jpmsserver.elasticsearch.EsRestClientProvider;
+    provides dev.jarl.jpmsserver.core.search.schema.SearchSchemaApplierProvider with
+            dev.jarl.jpmsserver.elasticsearch.EsSchemaApplierProvider;
 }

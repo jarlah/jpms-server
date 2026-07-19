@@ -1,0 +1,15 @@
+{
+  "mappings": {
+    "properties": {
+      "note_id": {
+        "type": "keyword"
+      },
+      "suggest": {
+        "type": "search_as_you_type"
+      },
+      "updated_at": {
+        "type": "date"
+      }
+    }
+  }
+}

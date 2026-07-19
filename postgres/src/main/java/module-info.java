@@ -8,4 +8,6 @@ module dev.jarl.jpmsserver.postgres {
 
     provides dev.jarl.jpmsserver.core.db.NoteStoreProvider with
             dev.jarl.jpmsserver.postgres.PostgresNoteStoreProvider;
+    provides dev.jarl.jpmsserver.core.db.schema.DbSchemaApplierProvider with
+            dev.jarl.jpmsserver.postgres.PostgresSchemaApplierProvider;
 }

@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.zaxxer.hikari.HikariDataSource;
 import dev.jarl.jpmsserver.core.notes.Note;
-import dev.jarl.jpmsserver.postgres.schema.Schema;
+import dev.jarl.jpmsserver.postgres.schema.PostgresSchemaProvider;
 import java.sql.SQLException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -25,7 +25,9 @@ class PostgresNoteRepositoryTest {
                 "jdbc:h2:mem:notes_pg;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1");
         dataSource.setUsername("sa");
         dataSource.setPassword("");
-        Schema.apply(dataSource);
+        try (var schema = new PostgresSchemaApplier(dataSource, null)) {
+            schema.apply(new PostgresSchemaProvider().schemas());
+        }
     }
 
     @AfterAll

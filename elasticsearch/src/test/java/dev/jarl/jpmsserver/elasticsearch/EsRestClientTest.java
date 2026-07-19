@@ -165,6 +165,60 @@ class EsRestClientTest {
     }
 
     @Test
+    void upsertIndexCreatesMissingIndex() {
+        stub.enqueue(StubEsServer.Response.of(404, ""), StubEsServer.Response.of(200, "{}"));
+
+        ObjectNode definition = json.createObjectNode();
+        definition
+                .putObject("mappings")
+                .putObject("properties")
+                .putObject("title")
+                .put("type", "text");
+
+        client.upsertIndex("notes", definition);
+
+        assertEquals("HEAD", stub.requests().get(0).method());
+        assertEquals("/notes", stub.requests().get(0).path());
+        assertEquals("PUT", stub.requests().get(1).method());
+        assertEquals("/notes", stub.requests().get(1).path());
+        assertEquals(
+                "text",
+                json.readTree(stub.requests().get(1).body())
+                        .path("mappings")
+                        .path("properties")
+                        .path("title")
+                        .path("type")
+                        .asString());
+    }
+
+    @Test
+    void upsertIndexUpdatesOnlyMappingsForExistingIndex() {
+        stub.enqueue(StubEsServer.Response.of(200, ""), StubEsServer.Response.of(200, "{}"));
+
+        ObjectNode definition = json.createObjectNode();
+        definition.putObject("settings").put("number_of_replicas", 0);
+        definition
+                .putObject("mappings")
+                .putObject("properties")
+                .putObject("title")
+                .put("type", "text");
+
+        client.upsertIndex("notes", definition);
+
+        assertEquals("HEAD", stub.requests().get(0).method());
+        assertEquals("PUT", stub.requests().get(1).method());
+        assertEquals("/notes/_mapping", stub.requests().get(1).path());
+        assertEquals(
+                "text",
+                json.readTree(stub.requests().get(1).body())
+                        .path("properties")
+                        .path("title")
+                        .path("type")
+                        .asString());
+        assertEquals(2, stub.requests().size());
+    }
+
+    @Test
     void sendsAuthorizationHeader() {
         var authed =
                 new EsRestClient(
