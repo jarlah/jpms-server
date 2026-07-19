@@ -26,6 +26,12 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
+/**
+ * Run with {@code mvn verify -pl app -am -Dit.test=ProductionAppIT}. Do not run this test directly
+ * from an IDE: the Maven package and Failsafe phases assemble {@code target/modules} and provide
+ * the {@code app.classes} and {@code app.modules} system properties used to launch the production
+ * module.
+ */
 @Testcontainers
 class ProductionAppIT {
 
