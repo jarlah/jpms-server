@@ -12,10 +12,9 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 
 /**
- * Test double for {@link SearchIndex}, swapped in the way H2 swaps for Postgres. Supports the query
- * subset this app uses: match_all, term, match (OR semantics like real ES), multi_match (boosts
- * stripped), bool (must/filter/must_not). Anything else throws so a test never silently passes on
- * an unsupported query.
+ * Test double for {@link SearchIndex}. Supports the query subset this app uses: match_all, term,
+ * match (OR semantics like real ES), multi_match (boosts stripped), bool (must/filter/must_not).
+ * Anything else throws so a test never silently passes on an unsupported query.
  */
 public final class InMemorySearchIndex implements SearchIndex {
 

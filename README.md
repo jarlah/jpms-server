@@ -7,7 +7,7 @@ A maximally spartan modular (JPMS) Java service:
 - **JSON**: Jackson 3 (`tools.jackson.*`), used **tree-model only** (`ObjectNode`) — no reflection, so the module needs no `opens`; all Jackson exceptions are unchecked in 3.x, so no wrapper boilerplate either.
 - **Search**: a generic `SearchIndex` core interface backed in production by a thin hand-rolled Elasticsearch REST client over `java.net.http.HttpClient`.
 
-Runtime third-party jars: `HikariCP` 7.x, `postgresql`, Jackson 3 `jackson-{core,databind}` (plus the 2.x `jackson-annotations` jar Jackson 3 intentionally retains for package stability), and `slf4j-api` + `slf4j-jdk14` — slf4j is a hard dependency of HikariCP; the jdk14 provider routes its logging into `java.util.logging`, keeping logging inside the JDK. Hikari 7 depends on slf4j-api 2.x natively, so versions align without any pinning. Test-only: JUnit 5, H2.
+Runtime third-party jars: `HikariCP` 7.x, `postgresql`, Jackson 3 `jackson-{core,databind}` (plus the 2.x `jackson-annotations` jar Jackson 3 intentionally retains for package stability), and `slf4j-api` + `slf4j-jdk14` — slf4j is a hard dependency of HikariCP; the jdk14 provider routes its logging into `java.util.logging`, keeping logging inside the JDK. Hikari 7 depends on slf4j-api 2.x natively, so versions align without any pinning. Test-only: JUnit 5 and Testcontainers.
 
 ## Modules
 
@@ -29,7 +29,10 @@ mvn spotless:apply   # format Java sources across the reactor
 mvn verify           # compiles on the module path (JPMS enforced), checks formatting, runs all tests
 ```
 
-Tests need no Docker and no network: H2 replaces Postgres, `InMemorySearchIndex` replaces the search backend, and `EsRestClientTest` exercises the real HTTP client against a scripted local Elasticsearch stub server.
+The schema integration tests require a working Docker daemon. Testcontainers starts the
+same PostgreSQL and Elasticsearch image versions used by `compose.yaml`; the first run may
+download them. Fast core tests still use in-memory implementations, and `EsRestClientTest`
+keeps its scripted local HTTP server for transport and failure-path coverage.
 
 ## Run
 
@@ -139,8 +142,8 @@ Both infrastructure edges are swapped through JPMS services — by construction,
 
 | Edge | Core service | Production provider | Tests |
 |---|---|---|
-| SQL | `NoteStoreProvider` | `jpms.server.postgres provides ... with PostgresNoteStoreProvider` | Postgres module tests use `jpms-server-postgres-schema` + H2 in PostgreSQL mode; core tests use `InMemoryNoteRepository` |
-| Search | `SearchIndexProvider` | `jpms.server.elasticsearch provides ... with EsRestClientProvider` | `new InMemorySearchIndex()` |
+| SQL | `NoteStoreProvider` | `jpms.server.postgres provides ... with PostgresNoteStoreProvider` | `postgres-schema` verifies the real schema and repository on Testcontainers PostgreSQL; core tests use `InMemoryNoteRepository` |
+| Search | `SearchIndexProvider` | `jpms.server.elasticsearch provides ... with EsRestClientProvider` | `elasticsearch-schema` verifies both indexes on Testcontainers Elasticsearch; core tests use `InMemorySearchIndex` |
 | DB schema | Backend API | `jpms-server-postgres-schema` depends on `jpms-server-postgres` and calls `PostgresSchemaApplier` directly | CLI/bootstrap concern |
 | Search schema | Backend API | `jpms-server-elasticsearch-schema` depends on `jpms-server-elasticsearch` and calls `EsSchemaApplier` directly | CLI/bootstrap concern |
 
