@@ -1,12 +1,12 @@
-module dev.jarl.jpmsserver.elasticsearch.schema {
-    requires transitive dev.jarl.jpmsserver.core;
+module jpms.server.elasticsearch.schema {
+    requires transitive jpms.server.core;
     requires transitive tools.jackson.databind;
 
-    exports dev.jarl.jpmsserver.elasticsearch.schema;
+    exports jpms.server.elasticsearch.schema;
 
-    uses dev.jarl.jpmsserver.core.search.schema.SearchSchemaApplierProvider;
-    uses dev.jarl.jpmsserver.core.search.schema.SearchSchemaProvider;
+    uses jpms.server.core.search.schema.SearchSchemaApplierProvider;
+    uses jpms.server.core.search.schema.SearchSchemaProvider;
 
-    provides dev.jarl.jpmsserver.core.search.schema.SearchSchemaProvider with
-            dev.jarl.jpmsserver.elasticsearch.schema.ElasticsearchSchemaProvider;
+    provides jpms.server.core.search.schema.SearchSchemaProvider with
+            jpms.server.elasticsearch.schema.ElasticsearchSchemaProvider;
 }

@@ -1,11 +1,11 @@
-module dev.jarl.jpmsserver.postgres.schema {
-    requires transitive dev.jarl.jpmsserver.core;
+module jpms.server.postgres.schema {
+    requires transitive jpms.server.core;
 
-    exports dev.jarl.jpmsserver.postgres.schema;
+    exports jpms.server.postgres.schema;
 
-    uses dev.jarl.jpmsserver.core.db.schema.DbSchemaApplierProvider;
-    uses dev.jarl.jpmsserver.core.db.schema.DbSchemaProvider;
+    uses jpms.server.core.db.schema.DbSchemaApplierProvider;
+    uses jpms.server.core.db.schema.DbSchemaProvider;
 
-    provides dev.jarl.jpmsserver.core.db.schema.DbSchemaProvider with
-            dev.jarl.jpmsserver.postgres.schema.PostgresSchemaProvider;
+    provides jpms.server.core.db.schema.DbSchemaProvider with
+            jpms.server.postgres.schema.PostgresSchemaProvider;
 }

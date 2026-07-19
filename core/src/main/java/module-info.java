@@ -1,11 +1,11 @@
-module dev.jarl.jpmsserver.core {
+module jpms.server.core {
     requires transitive jdk.httpserver;
     requires transitive tools.jackson.databind;
 
-    exports dev.jarl.jpmsserver.core.db;
-    exports dev.jarl.jpmsserver.core.db.schema;
-    exports dev.jarl.jpmsserver.core.http;
-    exports dev.jarl.jpmsserver.core.notes;
-    exports dev.jarl.jpmsserver.core.search;
-    exports dev.jarl.jpmsserver.core.search.schema;
+    exports jpms.server.core.db;
+    exports jpms.server.core.db.schema;
+    exports jpms.server.core.http;
+    exports jpms.server.core.notes;
+    exports jpms.server.core.search;
+    exports jpms.server.core.search.schema;
 }

@@ -1,13 +1,13 @@
-module dev.jarl.jpmsserver.postgres {
-    requires transitive dev.jarl.jpmsserver.core;
+module jpms.server.postgres {
+    requires transitive jpms.server.core;
     requires transitive java.sql;
     requires transitive com.zaxxer.hikari;
     requires org.postgresql.jdbc;
 
-    exports dev.jarl.jpmsserver.postgres;
+    exports jpms.server.postgres;
 
-    provides dev.jarl.jpmsserver.core.db.NoteStoreProvider with
-            dev.jarl.jpmsserver.postgres.PostgresNoteStoreProvider;
-    provides dev.jarl.jpmsserver.core.db.schema.DbSchemaApplierProvider with
-            dev.jarl.jpmsserver.postgres.PostgresSchemaApplierProvider;
+    provides jpms.server.core.db.NoteStoreProvider with
+            jpms.server.postgres.PostgresNoteStoreProvider;
+    provides jpms.server.core.db.schema.DbSchemaApplierProvider with
+            jpms.server.postgres.PostgresSchemaApplierProvider;
 }

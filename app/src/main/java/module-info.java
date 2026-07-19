@@ -1,7 +1,7 @@
-module dev.jarl.jpmsserver.app {
-    requires dev.jarl.jpmsserver.core;
+module jpms.server.app {
+    requires jpms.server.core;
     requires tools.jackson.databind;
 
-    uses dev.jarl.jpmsserver.core.db.NoteStoreProvider;
-    uses dev.jarl.jpmsserver.core.search.SearchIndexProvider;
+    uses jpms.server.core.db.NoteStoreProvider;
+    uses jpms.server.core.search.SearchIndexProvider;
 }

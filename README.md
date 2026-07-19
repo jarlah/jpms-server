@@ -13,12 +13,12 @@ Runtime third-party jars: `HikariCP` 7.x, `postgresql`, Jackson 3 `jackson-{core
 
 | Maven artifact | JPMS module | Purpose |
 |---|---|---|
-| `jpms-server-core` | `dev.jarl.jpmsserver.core` | Notes domain, HTTP API, repository/search interfaces |
-| `jpms-server-postgres-schema` | `dev.jarl.jpmsserver.postgres.schema` | Optional PostgreSQL schema SQL/bootstrap utility |
-| `jpms-server-postgres` | `dev.jarl.jpmsserver.postgres` | Hikari/JDBC repository and pgjdbc dependency |
-| `jpms-server-elasticsearch` | `dev.jarl.jpmsserver.elasticsearch` | Elasticsearch REST implementation for `SearchIndex` |
-| `jpms-server-elasticsearch-schema` | `dev.jarl.jpmsserver.elasticsearch.schema` | Optional Elasticsearch index bootstrap utility |
-| `jpms-server-app` | `dev.jarl.jpmsserver.app` | `Main`, config, and `ServiceLoader` lookup |
+| `jpms-server-core` | `jpms.server.core` | Notes domain, HTTP API, repository/search interfaces |
+| `jpms-server-postgres-schema` | `jpms.server.postgres.schema` | Optional PostgreSQL schema SQL/bootstrap utility |
+| `jpms-server-postgres` | `jpms.server.postgres` | Hikari/JDBC repository and pgjdbc dependency |
+| `jpms-server-elasticsearch` | `jpms.server.elasticsearch` | Elasticsearch REST implementation for `SearchIndex` |
+| `jpms-server-elasticsearch-schema` | `jpms.server.elasticsearch.schema` | Optional Elasticsearch index bootstrap utility |
+| `jpms-server-app` | `jpms.server.app` | `Main`, config, and `ServiceLoader` lookup |
 
 ## Build & test
 
@@ -62,7 +62,7 @@ full note search and `note_suggestions` for a separate suggestion-oriented use c
 
 ```sh
 java --module-path app/target/classes:app/target/modules \
-  -m dev.jarl.jpmsserver.app/dev.jarl.jpmsserver.Main
+  -m jpms.server.app/jpms.server.Main
 ```
 
 ### Poking the API — `api`
@@ -139,10 +139,10 @@ Both infrastructure edges are swapped through JPMS services — by construction,
 
 | Edge | Core service | Production provider | Tests |
 |---|---|---|
-| SQL | `NoteStoreProvider` | `dev.jarl.jpmsserver.postgres provides ... with PostgresNoteStoreProvider` | Postgres module tests use `jpms-server-postgres-schema` + H2 in PostgreSQL mode; core tests use `InMemoryNoteRepository` |
-| Search | `SearchIndexProvider` | `dev.jarl.jpmsserver.elasticsearch provides ... with EsRestClientProvider` | `new InMemorySearchIndex()` |
-| DB schema | `DbSchemaProvider` + `DbSchemaApplierProvider` | `dev.jarl.jpmsserver.postgres.schema provides ... with PostgresSchemaProvider`; `dev.jarl.jpmsserver.postgres provides ... with PostgresSchemaApplierProvider` | CLI/bootstrap concern |
-| Search schema | `SearchSchemaProvider` + `SearchSchemaApplierProvider` | `dev.jarl.jpmsserver.elasticsearch.schema provides ... with ElasticsearchSchemaProvider`; `dev.jarl.jpmsserver.elasticsearch provides ... with EsSchemaApplierProvider` | CLI/bootstrap concern |
+| SQL | `NoteStoreProvider` | `jpms.server.postgres provides ... with PostgresNoteStoreProvider` | Postgres module tests use `jpms-server-postgres-schema` + H2 in PostgreSQL mode; core tests use `InMemoryNoteRepository` |
+| Search | `SearchIndexProvider` | `jpms.server.elasticsearch provides ... with EsRestClientProvider` | `new InMemorySearchIndex()` |
+| DB schema | `DbSchemaProvider` + `DbSchemaApplierProvider` | `jpms.server.postgres.schema provides ... with PostgresSchemaProvider`; `jpms.server.postgres provides ... with PostgresSchemaApplierProvider` | CLI/bootstrap concern |
+| Search schema | `SearchSchemaProvider` + `SearchSchemaApplierProvider` | `jpms.server.elasticsearch.schema provides ... with ElasticsearchSchemaProvider`; `jpms.server.elasticsearch provides ... with EsSchemaApplierProvider` | CLI/bootstrap concern |
 
 `Main` declares `uses` for those provider interfaces and loads exactly one provider of each type via `ServiceLoader`. The concrete implementation is chosen by which provider module is present on the runtime module path, not by importing `EsRestClient` or `PostgresNoteRepository` in the app.
 
@@ -153,8 +153,8 @@ Both infrastructure edges are swapped through JPMS services — by construction,
 Every Maven submodule has a `module-info.java`. Core exports only its API packages and does not read SQL, Hikari, pgjdbc, or `java.net.http`; those dependencies live in the implementation modules. Schema bootstrapping is deliberately separate from the Postgres access module and is not used by app startup. The app module uses only core provider interfaces:
 
 ```java
-uses dev.jarl.jpmsserver.core.db.NoteStoreProvider;
-uses dev.jarl.jpmsserver.core.search.SearchIndexProvider;
+uses jpms.server.core.db.NoteStoreProvider;
+uses jpms.server.core.search.SearchIndexProvider;
 ```
 
 The implementation modules bind those services with `provides ... with ...`. The Postgres module keeps `requires org.postgresql.jdbc` even without direct references so the driver is present in the resolved graph. Unit tests run on the classpath (`surefire` `useModulePath=false`) while main compilation and real launches stay on the module path.
