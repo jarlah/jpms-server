@@ -8,6 +8,4 @@ module jpms.server.elasticsearch {
 
     provides jpms.server.core.search.SearchIndexProvider with
             jpms.server.elasticsearch.EsRestClientProvider;
-    provides jpms.server.core.search.schema.SearchSchemaApplierProvider with
-            jpms.server.elasticsearch.EsSchemaApplierProvider;
 }

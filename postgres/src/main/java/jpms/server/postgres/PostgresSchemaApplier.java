@@ -4,21 +4,24 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
 import javax.sql.DataSource;
-import jpms.server.core.db.schema.DbSchema;
-import jpms.server.core.db.schema.DbSchemaApplier;
 
-public final class PostgresSchemaApplier implements DbSchemaApplier {
+public final class PostgresSchemaApplier implements AutoCloseable {
 
     private final DataSource dataSource;
     private final AutoCloseable closeable;
+
+    public static PostgresSchemaApplier open(Map<String, String> config) {
+        var dataSource = PostgresDataSources.pooled(PostgresConfig.from(config));
+        return new PostgresSchemaApplier(dataSource, dataSource);
+    }
 
     public PostgresSchemaApplier(DataSource dataSource, AutoCloseable closeable) {
         this.dataSource = dataSource;
         this.closeable = closeable;
     }
 
-    @Override
     public void apply(List<DbSchema> schemas) {
         try (Connection connection = dataSource.getConnection();
                 Statement statement = connection.createStatement()) {

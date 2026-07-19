@@ -15,7 +15,7 @@
   <dependencies>
     <dependency>
       <groupId>jpms.server</groupId>
-      <artifactId>jpms-server-core</artifactId>
+      <artifactId>jpms-server-postgres</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

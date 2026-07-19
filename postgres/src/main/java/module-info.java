@@ -8,6 +8,4 @@ module jpms.server.postgres {
 
     provides jpms.server.core.db.NoteStoreProvider with
             jpms.server.postgres.PostgresNoteStoreProvider;
-    provides jpms.server.core.db.schema.DbSchemaApplierProvider with
-            jpms.server.postgres.PostgresSchemaApplierProvider;
 }

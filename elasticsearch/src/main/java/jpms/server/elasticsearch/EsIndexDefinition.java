@@ -1,12 +1,11 @@
-package jpms.server.core.search.schema;
+package jpms.server.elasticsearch;
 
 import java.util.Objects;
 import tools.jackson.databind.node.ObjectNode;
 
-/** Portable index definition owned by the application and applied by a search backend module. */
-public record SearchIndexDefinition(String name, ObjectNode definition) {
+public record EsIndexDefinition(String name, ObjectNode definition) {
 
-    public SearchIndexDefinition {
+    public EsIndexDefinition {
         Objects.requireNonNull(name, "name");
         if (name.isBlank()) {
             throw new IllegalArgumentException("index name must not be blank");

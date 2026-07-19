@@ -9,14 +9,12 @@ case "${1:-run}" in
   ddl)
     mvn -q -DskipTests package
     exec java --module-path postgres-schema/target/classes:app/target/modules \
-         --add-modules jpms.server.postgres,org.postgresql.jdbc \
          -m jpms.server.postgres.schema/jpms.server.postgres.schema.SchemaCli
     ;;
   es-schema)
     rm -rf app/target/modules
     mvn -q -DskipTests package
     exec java --module-path elasticsearch-schema/target/classes:app/target/modules \
-         --add-modules jpms.server.elasticsearch \
          -m jpms.server.elasticsearch.schema/jpms.server.elasticsearch.schema.SchemaCli
     ;;
   *)

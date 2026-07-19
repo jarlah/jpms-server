@@ -6,12 +6,10 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
-import jpms.server.core.db.schema.DbSchema;
-import jpms.server.core.db.schema.DbSchemaProvider;
+import jpms.server.postgres.DbSchema;
 
-public final class PostgresSchemaProvider implements DbSchemaProvider {
+public final class PostgresSchemaProvider {
 
-    @Override
     public List<DbSchema> schemas() {
         return List.of(new DbSchema("app", statements(readResource("/schema.sql"))));
     }

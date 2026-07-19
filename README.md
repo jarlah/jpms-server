@@ -141,8 +141,8 @@ Both infrastructure edges are swapped through JPMS services — by construction,
 |---|---|---|
 | SQL | `NoteStoreProvider` | `jpms.server.postgres provides ... with PostgresNoteStoreProvider` | Postgres module tests use `jpms-server-postgres-schema` + H2 in PostgreSQL mode; core tests use `InMemoryNoteRepository` |
 | Search | `SearchIndexProvider` | `jpms.server.elasticsearch provides ... with EsRestClientProvider` | `new InMemorySearchIndex()` |
-| DB schema | `DbSchemaProvider` + `DbSchemaApplierProvider` | `jpms.server.postgres.schema provides ... with PostgresSchemaProvider`; `jpms.server.postgres provides ... with PostgresSchemaApplierProvider` | CLI/bootstrap concern |
-| Search schema | `SearchSchemaProvider` + `SearchSchemaApplierProvider` | `jpms.server.elasticsearch.schema provides ... with ElasticsearchSchemaProvider`; `jpms.server.elasticsearch provides ... with EsSchemaApplierProvider` | CLI/bootstrap concern |
+| DB schema | Backend API | `jpms-server-postgres-schema` depends on `jpms-server-postgres` and calls `PostgresSchemaApplier` directly | CLI/bootstrap concern |
+| Search schema | Backend API | `jpms-server-elasticsearch-schema` depends on `jpms-server-elasticsearch` and calls `EsSchemaApplier` directly | CLI/bootstrap concern |
 
 `Main` declares `uses` for those provider interfaces and loads exactly one provider of each type via `ServiceLoader`. The concrete implementation is chosen by which provider module is present on the runtime module path, not by importing `EsRestClient` or `PostgresNoteRepository` in the app.
 

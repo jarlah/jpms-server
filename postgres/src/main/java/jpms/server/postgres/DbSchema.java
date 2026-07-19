@@ -1,4 +1,4 @@
-package jpms.server.core.db.schema;
+package jpms.server.postgres;
 
 import java.util.List;
 import java.util.Objects;
